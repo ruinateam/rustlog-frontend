@@ -3,40 +3,40 @@ import { Search } from "@mui/icons-material";
 import React, { useContext, useState, CSSProperties, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { useLog } from "../hooks/useLog";
+import { useThirdPartyEmotes } from "../hooks/useThirdPartyEmotes";
 import { store } from "../store";
 import { LogLine } from "./LogLine";
 import { FixedSizeList as List } from 'react-window';
+import { useChatBadges } from "../hooks/useChatBadges";
 
 const ContentLogContainer = styled.ul`
     padding: 0;
     margin: 0;
     position: relative;
 
-    .search {
-        position: absolute;
-        top: -52px;
-        width: 320px;
-        left: 0;
-    }
+    .search { width: min(100%, 24rem); margin-bottom: 0.8rem; }
 
     .logLine {
         white-space: nowrap;
     }
 
     .list {
-        scrollbar-color: dark;
+        scrollbar-color: var(--border-strong) transparent;
+        border-top: 1px solid var(--border);
     }
 `;
 
-export function ContentLog({ year, month }: { year: string, month: string }) {
+export function ContentLog({ year, month, day }: { year: string, month: string, day?: string }) {
     const { state, setState } = useContext(store);
     const [searchText, setSearchText] = useState("");
 
-    const logs = useLog(state.currentChannel ?? "", state.currentUsername ?? "", year, month)
+    const logs = useLog(state.currentChannel ?? "", state.currentUsername ?? "", year, month, day)
         .filter(log => log.text.toLowerCase().includes(searchText.toLowerCase()));
+    const thirdPartyEmotes = useThirdPartyEmotes(logs[0]?.tags["room-id"] ?? "");
+    const badges = useChatBadges(logs[0]?.tags["room-id"] ?? "");
 
     const Row = ({ index, style }: { index: number, style: CSSProperties }) => (
-        <div style={style}><LogLine key={logs[index].id ? logs[index].id : index} message={logs[index]} /></div>
+        <div style={style}><LogLine key={logs[index].id ? logs[index].id : index} message={logs[index]} thirdPartyEmotes={thirdPartyEmotes} badges={badges} /></div>
     );
 
     const search = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ export function ContentLog({ year, month }: { year: string, month: string }) {
 
     if (logs.length === 0) {
         return <ContentLogContainer>
-            <p style={{ margin: 0, padding: "8px 0" }}>No logs for {year}/{month}.</p>
+            <p style={{ margin: 0, padding: "8px 0" }}>No logs for {[year, month, day].filter(Boolean).join("/")}.</p>
         </ContentLogContainer>;
     }
 
@@ -73,7 +73,7 @@ export function ContentLog({ year, month }: { year: string, month: string }) {
         />
         <List
             className="list"
-            height={600}
+            height={Math.max(360, Math.min(680, window.innerHeight - 270))}
             itemCount={logs.length}
             itemSize={20}
             width={"100%"}

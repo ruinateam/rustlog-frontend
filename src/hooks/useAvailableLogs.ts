@@ -4,30 +4,33 @@ import { OptOutError } from "../errors/OptOutError";
 import { getUserId, isUserId } from "../services/isUserId";
 import { store } from "../store";
 
-export type AvailableLogs = Array<{ month: string, year: string }>;
+export type AvailableLog = { day?: string, month: string, year: string };
+export type AvailableLogs = Array<AvailableLog>;
 
 export function useAvailableLogs(channel: string | null, username: string | null): [AvailableLogs, Error | undefined] {
     const { state, setState } = useContext(store);
 
     // @ts-ignore I don't understand this error :)
     const { data } = useQuery<[AvailableLogs, Error | undefined]>(["availableLogs", { channel: channel, username: username }], () => {
-        if (!channel || !username) {
+        if (!channel) {
             return Promise.resolve([[], undefined]);
         }
 
         const channelIsId = isUserId(channel);
-        const usernameIsId = isUserId(username);
+        const usernameIsId = username ? isUserId(username) : false;
 
         if (channelIsId) {
             channel = getUserId(channel)
         }
-        if (usernameIsId) {
+        if (username && usernameIsId) {
             username = getUserId(username)
         }
 
         const queryUrl = new URL(`${state.apiBaseUrl}/list`);
         queryUrl.searchParams.append(`channel${channelIsId ? "id" : ""}`, channel);
-        queryUrl.searchParams.append(`user${usernameIsId ? "id" : ""}`, username);
+        if (username) {
+            queryUrl.searchParams.append(`user${usernameIsId ? "id" : ""}`, username);
+        }
 
         return fetch(queryUrl.toString()).then((response) => {
             if (response.ok) {

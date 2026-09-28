@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { QueryClient } from 'react-query';
 import { useLocalStorage } from "./hooks/useLocalStorage";
 
@@ -93,7 +93,7 @@ const StateProvider = ({ children }: { children: JSX.Element }): JSX.Element => 
 
         window.history.replaceState({}, "justlog", url.toString());
 
-        setState({ ...state, showOptout: show })
+        setState(previous => ({ ...previous, showOptout: show }));
     }
 
     const setSettings = (newSettings: Settings) => {
@@ -106,25 +106,45 @@ const StateProvider = ({ children }: { children: JSX.Element }): JSX.Element => 
         state.queryClient.removeQueries("log");
 
         setSettingsStorage(newSettings);
-        setState({ ...state, settings: newSettings });
+        setState(previous => ({ ...previous, settings: newSettings }));
     }
 
     const setCurrents = (currentChannel: string | null = null, currentUsername: string | null = null) => {
         currentChannel = currentChannel?.toLowerCase().trim() ?? null;
         currentUsername = currentUsername?.toLowerCase().trim() ?? null;
 
-        setState({ ...state, currentChannel, currentUsername, error: false });
+        setState(previous => ({ ...previous, currentChannel, currentUsername, error: false }));
 
         const url = new URL(window.location.href);
         if (currentChannel) {
             url.searchParams.set("channel", currentChannel);
+        } else {
+            url.searchParams.delete("channel");
         }
         if (currentUsername) {
             url.searchParams.set("username", currentUsername);
+        } else {
+            url.searchParams.delete("username");
         }
 
         window.history.replaceState({}, "justlog", url.toString());
     }
+
+    useEffect(() => {
+        const syncFromLocation = () => {
+            const url = new URL(window.location.href);
+            setState(previous => ({
+                ...previous,
+                currentChannel: url.searchParams.get("channel"),
+                currentUsername: url.searchParams.get("username"),
+                showOptout: url.searchParams.has("optout"),
+                error: false,
+            }));
+        };
+
+        window.addEventListener("popstate", syncFromLocation);
+        return () => window.removeEventListener("popstate", syncFromLocation);
+    }, []);
 
     return <Provider value={{ state, setState, setSettings, setCurrents, setShowOptout }}>{children}</Provider>;
 };

@@ -1,5 +1,4 @@
-import { Button } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import { Txt } from "../icons/Txt";
 import { getUserId, isUserId } from "../services/isUserId";
@@ -9,10 +8,10 @@ import { TwitchChatContentLog } from "./TwitchChatLogContainer";
 
 const LogContainer = styled.div`
     position: relative;
-    background: var(--bg-bright);
-    border-radius: 3px;
-    padding: 0.5rem;
-    margin-top: 3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1rem;
 
     .txt {
         position: absolute;
@@ -28,15 +27,8 @@ const LogContainer = styled.div`
     }
 `;
 
-export function Log({ year, month, initialLoad = false }: { year: string, month: string, initialLoad?: boolean }) {
+export function Log({ year, month, day }: { year: string, month: string, day?: string }) {
     const { state } = useContext(store);
-    const [load, setLoad] = useState(initialLoad);
-
-    if (!load) {
-        return <LogContainer>
-            <LoadableLog year={year} month={month} onLoad={() => setLoad(true)} />
-        </LogContainer>
-    }
 
     let txtHref = `${state.apiBaseUrl}`
     if (state.currentChannel && isUserId(state.currentChannel)) {
@@ -45,27 +37,19 @@ export function Log({ year, month, initialLoad = false }: { year: string, month:
         txtHref += `/channel/${state.currentChannel}`
     }
 
-    if (state.currentUsername && isUserId(state.currentUsername)) {
-        txtHref += `/userid/${getUserId(state.currentUsername)}`
-    } else {
-        txtHref += `/user/${state.currentUsername}`
+    if (state.currentUsername) {
+        if (isUserId(state.currentUsername)) {
+            txtHref += `/userid/${getUserId(state.currentUsername)}`
+        } else {
+            txtHref += `/user/${state.currentUsername}`
+        }
     }
 
-    txtHref += `/${year}/${month}?reverse`;
+    txtHref += `/${year}/${month}${day ? `/${day}` : ""}?reverse`;
 
     return <LogContainer>
-        <a className="txt" target="__blank" href={txtHref} rel="noopener noreferrer"><Txt /></a>
-        {!state.settings.twitchChatMode.value && <ContentLog year={year} month={month} />}
-        {state.settings.twitchChatMode.value && <TwitchChatContentLog year={year} month={month} />}
+        <a className="txt" aria-label="Open text export" target="_blank" href={txtHref} rel="noopener noreferrer"><Txt /></a>
+        {!state.settings.twitchChatMode.value && <ContentLog year={year} month={month} day={day} />}
+        {state.settings.twitchChatMode.value && <TwitchChatContentLog year={year} month={month} day={day} />}
     </LogContainer>
-}
-
-const LoadableLogContainer = styled.div`
-
-`;
-
-function LoadableLog({ year, month, onLoad }: { year: string, month: string, onLoad: () => void }) {
-    return <LoadableLogContainer>
-        <Button variant="contained" color="primary" size="large" onClick={onLoad}>load {year}/{month}</Button>
-    </LoadableLogContainer>
 }

@@ -7,23 +7,28 @@ import runes from "runes";
 
 
 
-export function useLog(channel: string, username: string, year: string, month: string): Array<LogMessage> {
+export function useLog(channel: string, username: string, year: string, month: string, day?: string): Array<LogMessage> {
     const { state } = useContext(store);
 
-    const { data } = useQuery<Array<LogMessage>>(["log", { channel: channel, username: username, year: year, month: month }], () => {
-        if (channel && username) {
+    const { data } = useQuery<Array<LogMessage>>(["log", { channel, username, year, month, day }], () => {
+        if (channel && (username || day)) {
             const channelIsId = isUserId(channel);
-            const usernameIsId = isUserId(username);
+            const usernameIsId = username ? isUserId(username) : false;
 
             if (channelIsId) {
                 channel = getUserId(channel)
             }
-            if (usernameIsId) {
+            if (username && usernameIsId) {
                 username = getUserId(username)
             }
 
-            const queryUrl = new URL(`${state.apiBaseUrl}/channel${channelIsId ? "id" : ""}/${channel}/user${usernameIsId ? "id" : ""}/${username}/${year}/${month}`);
+            const channelPath = `${state.apiBaseUrl}/channel${channelIsId ? "id" : ""}/${channel}`;
+            const logPath = username
+                ? `${channelPath}/user${usernameIsId ? "id" : ""}/${username}/${year}/${month}`
+                : `${channelPath}/${year}/${month}/${day}`;
+            const queryUrl = new URL(logPath);
             queryUrl.searchParams.append("jsonBasic", "1");
+            queryUrl.searchParams.append("limit", "5000");
             if (!state.settings.newOnBottom.value) {
                 queryUrl.searchParams.append("reverse", "1");
             }
@@ -31,20 +36,6 @@ export function useLog(channel: string, username: string, year: string, month: s
             return fetch(queryUrl.toString())
                 .then(async (response) => {
                     if (response.status === 404) {
-                        // пробуем следующий месяц: иногда фронт присылает месяц -1
-                        const nextMonth = (Number(month) + 1).toString();
-                        const fallbackUrl = new URL(queryUrl.toString());
-                        // заменим последний сегмент (month)
-                        const parts = fallbackUrl.pathname.split('/');
-                        parts[parts.length - 1] = nextMonth;
-                        fallbackUrl.pathname = parts.join('/');
-
-                        const fallback = await fetch(fallbackUrl.toString());
-                        if (fallback.ok) {
-                            return fallback;
-                        }
-
-                        // оба запроса пустые — считаем, что нет логов
                         return null;
                     }
                     if (response.ok) {

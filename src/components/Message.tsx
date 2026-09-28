@@ -90,7 +90,7 @@ export function Message({ message, thirdPartyEmotes }: { message: LogMessage, th
 
 			if (!emoteFound) {
 				renderMessage.push(<Linkify key={x} componentDecorator={(decoratedHref, decoratedText, key) => (
-					<a target="__blank" href={decoratedHref} key={key}>
+                    <a target="_blank" rel="noopener noreferrer" href={decoratedHref} key={key}>
 						{decoratedText}
 					</a>
 				)}>{buffer}</Linkify>);

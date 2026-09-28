@@ -11,24 +11,35 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <style>
         :root {
-            --bg: #0e0e10;
-            --bg-bright: #18181b;
-            --bg-brighter: #3d4146;
-            --bg-dark: #121416;
-            --theme: #00CC66;
-            --theme-bright: #00FF80;
-            --theme2: #2980b9;
-            --theme2-bright: #3498db;
-            --text: #F5F5F5;
-            --text-dark: #616161;
-            --danger: #e74c3c;
+            --canvas: #09090b;
+            --surface: #111113;
+            --surface-raised: #19191c;
+            --border: #29292d;
+            --border-strong: #44444a;
+            --accent: #f4f4f5;
+            --accent-bright: #ffffff;
+            --link: #d4d4d8;
+            --link-bright: #ffffff;
+            --text: #f4f4f5;
+            --muted: #8d8d93;
+            --danger: #ef6a6a;
+            --font-mono: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+            --bg: var(--canvas);
+            --bg-bright: var(--surface);
+            --bg-brighter: var(--surface-raised);
+            --bg-dark: var(--canvas);
+            --theme: var(--accent);
+            --theme-bright: var(--accent-bright);
+            --theme2: var(--link);
+            --theme2-bright: var(--link-bright);
+            --text-dark: var(--muted);
         }
 
         body {
             margin: 0;
             padding: 0;
             background: var(--bg);
-            font-family: Helvetica, Arial, sans-serif;
+            font-family: Inter, Roboto, Helvetica, Arial, sans-serif;
             height: 100%;
             width: 100%;
         }

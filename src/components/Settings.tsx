@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { Setting, store } from "../store";
 
 const SettingsContainer = styled.div`
-	
+	height: 40px;
 `;
 
 export function Settings() {

@@ -1,11 +1,13 @@
 import dayjs from "dayjs";
 import React, { useContext } from "react";
 import styled from "styled-components";
-import { useThirdPartyEmotes } from "../hooks/useThirdPartyEmotes";
 import { store } from "../store";
 import { LogMessage } from "../types/log";
+import { ThirdPartyEmote } from "../types/ThirdPartyEmote";
 import { Message } from "./Message";
 import { User } from "./User";
+import { ChatBadgeIndex } from "../hooks/useChatBadges";
+import { ChatBadges } from "./ChatBadges";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
@@ -27,7 +29,7 @@ const TwitchChatLogLineContainer = styled.li`
         line-height: 1.1rem;
     }
 
-    .user {
+    .badges, .user {
         display: inline-block;
         margin-right: 5px;
         user-select: none;
@@ -52,27 +54,13 @@ const TwitchChatLogLineContainer = styled.li`
     }
 `;
 
-export function TwitchChatLogLine({ message }: { message: LogMessage }) {
-    const { state } = useContext(store);
-
-    if (state.settings.showEmotes.value) {
-        return <LogLineWithEmotes message={message} />;
-    }
-
-    return <TwitchChatLogLineContainer className="logLine">
-        {state.settings.showTimestamp.value && <span className="timestamp">{dayjs(message.timestamp).format("YYYY-MM-DD HH:mm:ss")}</span>}
-        {state.settings.showName.value && <User displayName={message.displayName} color={message.tags["color"]} />}
-        <Message message={message} thirdPartyEmotes={[]} />
-    </TwitchChatLogLineContainer>
-}
-
-function LogLineWithEmotes({ message }: { message: LogMessage }) {
-    const thirdPartyEmotes = useThirdPartyEmotes(message.tags["room-id"])
+export function TwitchChatLogLine({ message, thirdPartyEmotes, badges }: { message: LogMessage, thirdPartyEmotes: Array<ThirdPartyEmote>, badges: ChatBadgeIndex }) {
     const { state } = useContext(store);
 
     return <TwitchChatLogLineContainer className="logLine">
         {state.settings.showTimestamp.value && <span className="timestamp">{dayjs(message.timestamp).format("YYYY-MM-DD HH:mm:ss")}</span>}
+        <ChatBadges value={message.tags["badges"]} badges={badges} />
         {state.settings.showName.value && <User displayName={message.displayName} color={message.tags["color"]} />}
-        <Message message={message} thirdPartyEmotes={thirdPartyEmotes} />
+        <Message message={message} thirdPartyEmotes={state.settings.showEmotes.value ? thirdPartyEmotes : []} />
     </TwitchChatLogLineContainer>
 }

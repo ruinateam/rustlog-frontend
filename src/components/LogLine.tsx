@@ -1,11 +1,13 @@
 import dayjs from "dayjs";
 import React, { useContext } from "react";
 import styled from "styled-components";
-import { useThirdPartyEmotes } from "../hooks/useThirdPartyEmotes";
 import { store } from "../store";
 import { LogMessage } from "../types/log";
+import { ThirdPartyEmote } from "../types/ThirdPartyEmote";
 import { Message } from "./Message";
 import { User } from "./User";
+import { ChatBadgeIndex } from "../hooks/useChatBadges";
+import { ChatBadges } from "./ChatBadges";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
@@ -26,7 +28,7 @@ const LogLineContainer = styled.li`
         line-height: 1.1rem;
     }
 
-    .user {
+    .badges, .user {
         margin-left: 5px;
         user-select: none;
         font-weight: bold;
@@ -39,27 +41,13 @@ const LogLineContainer = styled.li`
     }
 `;
 
-export function LogLine({ message }: { message: LogMessage }) {
-    const { state } = useContext(store);
-
-    if (state.settings.showEmotes.value) {
-        return <LogLineWithEmotes message={message} />;
-    }
-
-    return <LogLineContainer className="logLine">
-        {state.settings.showTimestamp.value &&<span className="timestamp">{dayjs(message.timestamp).format("YYYY-MM-DD HH:mm:ss")}</span>}
-        {state.settings.showName.value && <User displayName={message.displayName} color={message.tags["color"]} />}
-        <Message message={message} thirdPartyEmotes={[]} />
-    </LogLineContainer>
-}
-
-export function LogLineWithEmotes({ message }: { message: LogMessage }) {
-    const thirdPartyEmotes = useThirdPartyEmotes(message.tags["room-id"])
+export function LogLine({ message, thirdPartyEmotes, badges }: { message: LogMessage, thirdPartyEmotes: Array<ThirdPartyEmote>, badges: ChatBadgeIndex }) {
     const { state } = useContext(store);
 
     return <LogLineContainer className="logLine">
         {state.settings.showTimestamp.value &&<span className="timestamp">{dayjs(message.timestamp).format("YYYY-MM-DD HH:mm:ss")}</span>}
+        <ChatBadges value={message.tags["badges"]} badges={badges} />
         {state.settings.showName.value && <User displayName={message.displayName} color={message.tags["color"]} />}
-        <Message message={message} thirdPartyEmotes={thirdPartyEmotes} />
+        <Message message={message} thirdPartyEmotes={state.settings.showEmotes.value ? thirdPartyEmotes : []} />
     </LogLineContainer>
 }

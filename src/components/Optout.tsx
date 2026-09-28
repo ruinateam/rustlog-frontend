@@ -5,7 +5,7 @@ import { store } from "../store";
 import CancelIcon from '@mui/icons-material/Cancel';
 
 const OptoutWrapper = styled.div`
-
+    height: 40px;
 `;
 
 export function Optout() {
@@ -43,12 +43,13 @@ const OptoutPanelWrapper = styled.div`
 
         input {
             background: var(--bg);
-            border: none;
+            height: 40px;
+            border: 1px solid var(--border);
             color: white;
-            padding: 0.6rem;
-            font-size: 1.5rem;
+            padding: 0 0.75rem;
+            font: 1rem var(--font-mono);
             text-align: center;
-            border-radius: 3px;
+            border-radius: 8px;
         }
     }
 
